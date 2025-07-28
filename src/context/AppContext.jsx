@@ -1,35 +1,58 @@
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState } from 'react';
 
 const AppContext = createContext();
 
-const initialData = {
+const STORAGE_KEY = 'home-learning-progress';
+
+// Get progress from localStorage
+const getStoredProgress = () => {
+  try {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    return stored ? JSON.parse(stored) : null;
+  } catch {
+    return null;
+  }
+};
+
+// Save progress to localStorage  
+const saveProgress = (data) => {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  } catch {
+    // Fail silently if localStorage unavailable
+  }
+};
+
+const defaultState = {
   user: {
-    id: 'user-1',
     name: 'John Doe',
-    coins: 10
+    coins: 25
   },
+  currentLessonIndex: 0,
   module: {
     id: 'home-inspection-basics',
     title: 'Home Inspection Basics',
-    description: 'Learn about home inspections for first-time buyers.',
-    coinReward: 25,
+    description: 'Essential knowledge for first-time home buyers',
+    coinReward: 50,
     isCompleted: false,
     progress: 0,
     lessons: [
       {
         id: 'lesson-1',
-        title: 'What is a Home Inspection?',
-        content: `A home inspection is when a professional examines a house before you buy it. They check for problems you might not notice.
+        title: 'Understanding Home Inspections',
+        content: `A home inspection is your chance to really know what you're buying. Think of it as getting a professional second opinion before making the biggest purchase of your life.
 
-The inspector looks at:
-• Structure and foundation
-• Electrical systems  
-• Plumbing
-• Heating and cooling
-• Roof condition
+The inspector will walk through the house and check all the major systems:
+• Foundation and structure
+• Electrical wiring and panels
+• Plumbing and water systems  
+• HVAC (heating and cooling)
+• Roof and gutters
 • Windows and doors
 
-This helps you know what you're buying and can save you money later.`,
+They're looking for safety issues, things that might break soon, or expensive problems you should know about. It usually takes 2-4 hours depending on the house size.
+
+The inspector will give you a detailed report afterward, often with photos. This becomes your roadmap for negotiations with the seller or helps you plan future repairs.`,
         isCompleted: false,
         interactiveElement: {
           type: 'quiz',
@@ -42,17 +65,30 @@ This helps you know what you're buying and can save you money later.`,
       },
       {
         id: 'lesson-2',
-        title: 'Common Issues Found',
-        content: `Home inspectors often find these common problems:
+        title: 'Red Flags to Watch For',
+        content: `Not all problems are deal-breakers, but some issues should make you think twice. Here are the big ones inspectors commonly find:
 
-• Electrical issues (old wiring, overloaded circuits)
-• Plumbing problems (leaks, old pipes)
-• Roof issues (missing shingles, leaks)
-• HVAC problems (old systems, poor maintenance)
-• Foundation cracks
-• Poor insulation
+Electrical Problems:
+• Old knob-and-tube wiring
+• Overloaded circuits or panels
+• Missing GFCI outlets in bathrooms/kitchens
 
-Most issues can be fixed, but it's good to know about them before buying.`,
+Plumbing Issues:
+• Galvanized steel pipes (prone to corrosion)
+• Poor water pressure throughout house
+• Signs of ongoing leaks
+
+Structural Concerns:
+• Foundation cracks wider than 1/4 inch
+• Sagging floors or ceilings
+• Evidence of termite damage
+
+HVAC Red Flags: 
+• Very old furnace or AC unit
+• Ductwork problems
+• Poor ventilation
+
+Most of these can be fixed, but they're expensive. Use this info to negotiate or budget for repairs.`,
         isCompleted: false,
         interactiveElement: {
           type: 'diagram',
@@ -63,15 +99,25 @@ Most issues can be fixed, but it's good to know about them before buying.`,
       },
       {
         id: 'lesson-3',
-        title: 'After the Inspection',
-        content: `Once you get the inspection report, you have several options:
+        title: 'What Happens Next?',
+        content: `Got the inspection report? Don't panic if it lists problems - every house has some issues. Here's how to handle it:
 
-• Accept the house as-is
-• Ask the seller to fix major issues
-• Negotiate a lower price
-• Walk away from the deal
+Review the Report:
+Focus on safety issues and expensive repairs first. Cosmetic stuff can wait.
 
-Don't panic if problems are found - most houses have some issues. Focus on safety and expensive repairs.`,
+Your Options:
+• Accept everything as-is (maybe negotiate price down)
+• Ask seller to fix major issues before closing
+• Request credits at closing to handle repairs yourself
+• Walk away if problems are too severe
+
+Negotiation Tips:
+Get repair estimates for big items. This gives you real numbers to work with. Sellers often prefer giving credits over doing repairs themselves.
+
+Final Inspection:
+If seller agrees to fix things, do a final walkthrough before closing to make sure work was completed properly.
+
+Remember: The inspection protects you. It's much better to know about problems now than discover them after you own the house.`,
         isCompleted: false,
         interactiveElement: {
           type: 'quiz',
@@ -87,52 +133,96 @@ Don't panic if problems are found - most houses have some issues. Focus on safet
 };
 
 export const AppProvider = ({ children }) => {
-  const [user, setUser] = useState(initialData.user);
-  const [module, setModule] = useState(initialData.module);
-  const [currentLessonIndex, setCurrentLessonIndex] = useState(0);
+  const [state, setState] = useState(() => {
+    const stored = getStoredProgress();
+    return stored || defaultState;
+  });
+
+  const [coinAnimation, setCoinAnimation] = useState({ show: false, amount: 0 });
+
+  // Auto-save progress
+  useEffect(() => {
+    saveProgress(state);
+  }, [state]);
+
+  const showCoins = (amount) => {
+    setCoinAnimation({ show: true, amount });
+    setTimeout(() => setCoinAnimation({ show: false, amount: 0 }), 2000);
+  };
 
   const addCoins = (amount) => {
-    setUser(prev => ({ ...prev, coins: prev.coins + amount }));
+    setState(prev => ({
+      ...prev,
+      user: { ...prev.user, coins: prev.user.coins + amount }
+    }));
+    showCoins(amount);
   };
 
   const nextLesson = () => {
-    if (currentLessonIndex < module.lessons.length - 1) {
-      setCurrentLessonIndex(currentLessonIndex + 1);
-    }
+    setState(prev => ({
+      ...prev,
+      currentLessonIndex: Math.min(
+        prev.currentLessonIndex + 1,
+        prev.module.lessons.length - 1
+      )
+    }));
   };
 
   const previousLesson = () => {
-    if (currentLessonIndex > 0) {
-      setCurrentLessonIndex(currentLessonIndex - 1);
-    }
+    setState(prev => ({
+      ...prev,
+      currentLessonIndex: Math.max(prev.currentLessonIndex - 1, 0)
+    }));
   };
 
   const completeLesson = (lessonIndex) => {
-    const updated = { ...module };
-    updated.lessons[lessonIndex].isCompleted = true;
+    setState(prev => {
+      const updatedLessons = [...prev.module.lessons];
+      updatedLessons[lessonIndex] = { ...updatedLessons[lessonIndex], isCompleted: true };
 
-    const completed = updated.lessons.filter(l => l.isCompleted).length;
-    updated.progress = (completed / updated.lessons.length) * 100;
-    updated.isCompleted = completed === updated.lessons.length;
+      const completed = updatedLessons.filter(l => l.isCompleted).length;
+      const progress = (completed / updatedLessons.length) * 100;
 
-    setModule(updated);
+      return {
+        ...prev,
+        module: {
+          ...prev.module,
+          lessons: updatedLessons,
+          progress,
+          isCompleted: completed === updatedLessons.length
+        }
+      };
+    });
   };
 
   const completeInteractiveElement = (lessonIndex) => {
-    const updated = { ...module };
-    updated.lessons[lessonIndex].interactiveElement.completed = true;
-    setModule(updated);
+    setState(prev => {
+      const updatedLessons = [...prev.module.lessons];
+      updatedLessons[lessonIndex] = {
+        ...updatedLessons[lessonIndex],
+        interactiveElement: {
+          ...updatedLessons[lessonIndex].interactiveElement,
+          completed: true
+        }
+      };
+
+      return {
+        ...prev,
+        module: { ...prev.module, lessons: updatedLessons }
+      };
+    });
   };
 
   const resetModule = () => {
-    setModule(initialData.module);
-    setCurrentLessonIndex(0);
+    setState(defaultState);
+    localStorage.removeItem(STORAGE_KEY);
   };
 
   const value = {
-    user,
-    currentModule: module,
-    currentLessonIndex,
+    user: state.user,
+    currentModule: state.module,
+    currentLessonIndex: state.currentLessonIndex,
+    coinAnimation,
     addCoins,
     nextLesson,
     previousLesson,

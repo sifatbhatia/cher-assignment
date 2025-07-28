@@ -2,6 +2,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { ArrowLeft, ArrowRight, BookOpen, Check } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
 import DiagramComponent from '../components/DiagramComponent';
+import PageTransition from '../components/PageTransition';
 import ProgressBar from '../components/ProgressBar';
 import QuizComponent from '../components/QuizComponent';
 import Button from '../components/SimpleButton';
@@ -92,7 +93,7 @@ const LessonPage = ({ onBackToOverview, onComplete }) => {
    };
 
    return (
-      <div className="min-h-screen bg-gray-50">
+      <PageTransition className="min-h-screen bg-gray-50">
          {/* Header */}
          <div className="bg-white border-b border-gray-200 sticky top-16 z-40">
             <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
@@ -150,7 +151,7 @@ const LessonPage = ({ onBackToOverview, onComplete }) => {
                className="card mb-8"
             >
                <div className="prose prose-lg max-w-none">
-                  {currentLesson.content.split('\n\n').map((paragraph, index) => {
+                  {lesson.content.split('\n\n').map((paragraph, index) => {
                      if (paragraph.includes('•')) {
                         const lines = paragraph.split('\n');
                         const listItems = lines.filter(line => line.trim().startsWith('•'));
@@ -262,7 +263,7 @@ const LessonPage = ({ onBackToOverview, onComplete }) => {
                <div className="flex-1"></div>
 
                <div className="flex space-x-4">
-                  {canCompleteLesson && !currentLesson.isCompleted && (
+                  {canCompleteLesson && !lesson.isCompleted && (
                      <Button
                         onClick={handleLessonComplete}
                         className="bg-green-600 hover:bg-green-700"
@@ -272,14 +273,14 @@ const LessonPage = ({ onBackToOverview, onComplete }) => {
                      </Button>
                   )}
 
-                  {currentLesson.isCompleted && !isLastLesson && (
+                  {lesson.isCompleted && !isLastLesson && (
                      <Button onClick={nextLesson}>
                         Next Lesson
                         <ArrowRight className="w-4 h-4 ml-2" />
                      </Button>
                   )}
 
-                  {currentLesson.isCompleted && isLastLesson && (
+                  {lesson.isCompleted && isLastLesson && (
                      <Button
                         onClick={onComplete}
                         className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700"
@@ -311,7 +312,7 @@ const LessonPage = ({ onBackToOverview, onComplete }) => {
                </p>
             </div>
          </div>
-      </div>
+      </PageTransition>
    );
 };
 

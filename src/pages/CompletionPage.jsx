@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion';
 import { Award, Coins, Home, RotateCcw } from 'lucide-react';
 import React, { useEffect } from 'react';
+import PageTransition from '../components/PageTransition';
 import Button from '../components/SimpleButton';
 import { useAppContext } from '../context/AppContext';
 import { formatCoins } from '../utils';

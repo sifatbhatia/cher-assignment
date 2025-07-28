@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion';
 import { Award, BookOpen, Clock, Play } from 'lucide-react';
 import React from 'react';
+import PageTransition from '../components/PageTransition';
 import ProgressBar from '../components/ProgressBar';
 import Button from '../components/SimpleButton';
 import { useAppContext } from '../context/AppContext.jsx';
@@ -18,7 +19,7 @@ const ModuleOverview = ({ onStartModule }) => {
    const timeToComplete = calculateTimeToComplete(totalLessons, completedLessons);
 
    return (
-      <div className="min-h-screen bg-gray-50 py-8">
+      <PageTransition className="min-h-screen bg-gray-50 py-8">
          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
             {/* Hero Section */}
             <motion.div
@@ -190,7 +191,7 @@ const ModuleOverview = ({ onStartModule }) => {
                </ul>
             </motion.div>
          </div>
-      </div>
+      </PageTransition>
    );
 };
 
